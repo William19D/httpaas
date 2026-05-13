@@ -1,0 +1,48 @@
+{{define "layout"}}<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Title}} — CloudLocal HTTPaaS</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  {{if not .HideTopbar}}
+  <header class="topbar">
+    <a href="/" class="brand">
+      <span class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+          <rect x="9" y="9" width="6" height="6"></rect>
+          <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"></path>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">CloudLocal HTTPaaS</span>
+        <span class="brand-tag">CONTROL PANEL V2.1</span>
+      </span>
+    </a>
+    <div class="topbar-actions">
+      <a href="/provision" class="btn btn-primary">+ NUEVA INSTANCIA</a>
+      <a href="#" class="icon-btn" title="Perfil" aria-label="Perfil">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M4 21c0-4 4-7 8-7s8 3 8 7"></path>
+        </svg>
+      </a>
+    </div>
+  </header>
+  <div class="topbar-rule"></div>
+  {{end}}
+
+  <main class="container">
+    {{template "body" .}}
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "body"}}{{end}}

@@ -1,0 +1,21 @@
+; =============================================================
+; HTTPaaS - Zona inversa 56.168.192.in-addr.arpa.
+; =============================================================
+; Resoluciones inversas para 192.168.56.0/24. Igual que la zona
+; directa, las instancias se agregan dinámicamente con nsupdate.
+; =============================================================
+
+$TTL    300
+@       IN      SOA     dns.cloud.local. admin.cloud.local. (
+                            2026051001
+                            3600
+                            900
+                            604800
+                            300
+                        )
+
+@               IN      NS      dns.cloud.local.
+
+; PTR base: 10 -> dns.cloud.local.
+10              IN      PTR     dns.cloud.local.
+1               IN      PTR     api.cloud.local.

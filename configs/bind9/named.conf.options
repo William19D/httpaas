@@ -1,0 +1,44 @@
+// =============================================================
+// HTTPaaS - Bind9 opciones globales
+// =============================================================
+//
+// Este archivo se copia en la VM DNS dentro de /etc/bind/.
+// Define el comportamiento global del servidor:
+//   - escucha en la IP de host-only,
+//   - acepta consultas desde toda la subred 192.168.56.0/24,
+//   - reenvía consultas externas (todo lo que no es cloud.local.)
+//     a los DNS públicos de Cloudflare y Google.
+//
+// Para depurar consultas:  rndc querylog
+// Para validar sintaxis:    named-checkconf
+// =============================================================
+
+acl trusted_clients {
+    127.0.0.0/8;
+    192.168.56.0/24;
+};
+
+options {
+    directory "/var/cache/bind";
+
+    listen-on    { 127.0.0.1; 192.168.56.10; };
+    listen-on-v6 { none; };
+
+    allow-query        { trusted_clients; };
+    allow-recursion    { trusted_clients; };
+    allow-query-cache  { trusted_clients; };
+
+    // Reenvío para nombres externos. Si la VM no tiene Internet,
+    // simplemente devolverá SERVFAIL para nombres fuera de cloud.local.
+    forwarders {
+        1.1.1.1;
+        8.8.8.8;
+    };
+    forward only;
+
+    recursion yes;
+    dnssec-validation no;
+
+    auth-nxdomain no;
+    minimal-responses yes;
+};

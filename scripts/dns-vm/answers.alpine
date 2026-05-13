@@ -1,0 +1,30 @@
+KEYMAPOPTS="us us"
+HOSTNAMEOPTS="httpaas-dns"
+DEVDOPTS=mdev
+INTERFACESOPTS="auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+    address 192.168.56.10
+    netmask 255.255.255.0
+
+auto eth1
+iface eth1 inet dhcp
+
+hostname httpaas-dns
+"
+DNSOPTS="-d cloud.local 1.1.1.1 8.8.8.8"
+TIMEZONEOPTS="UTC"
+PROXYOPTS="none"
+APKREPOSOPTS="-1 -c"
+USEROPTS="-a -u cloud"
+# Paste the public key the webapp will use (matches SSHConfig.KeyPath).
+# The setup script substitutes it automatically; leave empty to disable key auth.
+USERSSHKEY=""
+ROOTSSHKEY=""
+SSHDOPTS="openssh"
+NTPOPTS="chrony"
+DISKOPTS="-m sys /dev/sda"
+LBUOPTS="none"
+APKCACHEOPTS="none"

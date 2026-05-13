@@ -1,0 +1,41 @@
+# =============================================================
+# HTTPaaS - Servicio systemd para la webapp Go
+# =============================================================
+# Se copia en /etc/systemd/system/httpaas.service durante install.sh.
+# Corre como el usuario que ejecuta VirtualBox (no root) porque
+# VBoxManage requiere el contexto del usuario dueño de las VMs.
+#
+# Las rutas reales se sustituyen por install.sh antes de habilitar
+# el servicio (sed sobre __USER__, __HOME__, __WORKDIR__).
+# =============================================================
+
+[Unit]
+Description=HTTPaaS - HTTP as a Service orchestrator
+After=network.target vboxweb.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__USER__
+Environment=HOME=__HOME__
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+WorkingDirectory=__WORKDIR__
+
+ExecStart=__WORKDIR__/httpaas
+Restart=on-failure
+RestartSec=5
+
+# Endurecimiento ligero (la app necesita VBoxManage y nsupdate,
+# así que no podemos cerrarlo todo).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+
+# Salida a journald
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

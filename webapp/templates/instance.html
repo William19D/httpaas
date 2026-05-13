@@ -1,0 +1,151 @@
+{{define "body"}}
+{{with .Instance}}
+<div class="detail-topbar">
+  <a href="/" class="link-back">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path>
+    </svg>
+    VOLVER AL PANEL
+  </a>
+  <div class="link-fqdn">
+    <span class="globe">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="14" rx="2"></rect>
+        <path d="M3 10h18"></path>
+      </svg>
+    </span>
+    <code>{{.VMName}}</code>
+  </div>
+</div>
+<div class="detail-rule"></div>
+
+<section class="detail-hero">
+  <div class="hero-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="7" rx="1.5"></rect>
+      <rect x="3" y="13" width="18" height="7" rx="1.5"></rect>
+      <path d="M7 7.5h.01M7 16.5h.01"></path>
+    </svg>
+  </div>
+  <h1 class="detail-title">
+    {{if eq .VBoxState "running"}}MÁQUINA VIRTUAL EN EJECUCIÓN
+    {{else if eq .VBoxState "saved"}}MÁQUINA VIRTUAL SUSPENDIDA
+    {{else if eq .VBoxState "paused"}}MÁQUINA VIRTUAL PAUSADA
+    {{else if eq .VBoxState "aborted"}}MÁQUINA VIRTUAL ABORTADA
+    {{else if eq .VBoxState "starting"}}INICIANDO MÁQUINA VIRTUAL
+    {{else}}MÁQUINA VIRTUAL APAGADA{{end}}
+  </h1>
+  <p class="detail-sub">{{.VMName}}{{if .OSType}} · {{.OSType}}{{end}}</p>
+</section>
+
+<div class="detail-grid">
+  <section class="card">
+    <h2 class="card-title">INFORMACIÓN DE LA VM</h2>
+    <div class="kv">
+      <span class="ic-label">NOMBRE</span>
+      <div class="ic-input"><code>{{.VMName}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">SISTEMA OPERATIVO</span>
+      <div class="ic-input"><code>{{if .OSType}}{{.OSType}}{{else}}—{{end}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">RECURSOS</span>
+      <div class="ic-input"><code>{{.CPUs}} CPU · {{.MemoryMB}} MB RAM</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">ESTADO</span>
+      <div class="ic-input ic-input--status">
+        <span class="state-pill {{vboxClass .VBoxState}}">
+          <span class="state-square"></span>{{vboxLabel .VBoxState}}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">RED Y CONEXIÓN</h2>
+    <div class="kv">
+      <span class="ic-label">DIRECCIÓN <span class="ic-label-em">IP</span></span>
+      <div class="ic-input"><code>{{if .IP}}{{.IP}}{{else}}—{{end}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">UUID VIRTUALBOX</span>
+      <div class="ic-input"><code>{{.VMUUID}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">ORIGEN</span>
+      <div class="ic-input ic-input--info">
+        {{if .Managed}}
+        <span class="info-pill"><span class="info-square"></span>APROVISIONADA POR HTTPAAS</span>
+        {{else}}
+        <span class="info-pill"><span class="info-square"></span>IMPORTADA DE VIRTUALBOX</span>
+        {{end}}
+      </div>
+    </div>
+  </section>
+</div>
+
+{{if and (eq .VBoxState "running") .IP}}
+<section class="open-bar">
+  <div>
+    <span class="ic-label">URL DIRECTA</span>
+    <code class="url-large">http://{{.IP}}/</code>
+  </div>
+  <a href="http://{{.IP}}/" target="_blank" rel="noopener" class="btn btn-primary btn-open">
+    ABRIR EN NAVEGADOR
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 4h6v6"></path><path d="M10 14L20 4"></path>
+      <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"></path>
+    </svg>
+  </a>
+</section>
+{{end}}
+
+{{if .LastError}}
+<div class="banner banner-error">
+  <strong>Último error:</strong>
+  <pre>{{.LastError}}</pre>
+</div>
+{{end}}
+
+<section class="logs">
+  <h2 class="card-title">EVENTOS <span class="log-counter" id="log-counter">{{len .Logs}} eventos</span></h2>
+  <div class="log-viewer" id="log-viewer">
+    {{range .Logs}}
+    <div class="log-line log-{{.Level}}">
+      <span class="log-time">{{.Timestamp.Format "15:04:05"}}</span>
+      <span class="log-level">[{{upper .Level}}]</span>
+      <span class="log-msg">{{.Message}}</span>
+    </div>
+    {{end}}
+  </div>
+</section>
+
+<section class="instance-actions">
+  {{if eq .VBoxState "running"}}
+  <form method="POST" action="/instances/{{.ID}}/restart" class="inline">
+    <button type="submit" class="btn btn-ghost">↻ REINICIAR</button>
+  </form>
+  <form method="POST" action="/instances/{{.ID}}/stop" class="inline">
+    <button type="submit" class="btn btn-danger">■ APAGAR</button>
+  </form>
+  {{else}}
+  <form method="POST" action="/instances/{{.ID}}/start" class="inline">
+    <button type="submit" class="btn btn-primary">▶ ENCENDER</button>
+  </form>
+  {{end}}
+  {{if not .Managed}}
+  <form method="POST" action="/instances/{{.ID}}/delete" class="inline"
+        onsubmit="return confirm('¿Quitar {{.VMName}} del dashboard? (La VM real NO se borra.)')">
+    <button type="submit" class="btn btn-ghost">Quitar del panel</button>
+  </form>
+  {{end}}
+</section>
+
+<script>
+  const instanceId = "{{.ID}}";
+</script>
+<script src="/static/js/instance.js" defer></script>
+{{end}}
+{{end}}

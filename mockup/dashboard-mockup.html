@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTPaaS — Mockup del Dashboard</title>
+
+    <!-- Tipografías: las mismas que la webapp final -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           HTTPaaS — mockup brutalist/terminal
+           Variante autocontenida del CSS real (app.css)
+           para que el mockup se pueda abrir sin nada más.
+           ============================================ */
+        :root {
+            --bg: #f5f3ec;
+            --bg-soft: #ebe7dd;
+            --ink: #0d0d0d;
+            --ink-soft: #2a2a2a;
+            --muted: #6b6b66;
+            --rule: #1a1a1a;
+            --accent: #c6ff3a;
+            --warn: #ffb800;
+            --danger: #ff3a3a;
+            --running: #00b85a;
+            --grid: rgba(0, 0, 0, 0.04);
+            --font-display: 'Space Grotesk', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            background: var(--bg); color: var(--ink);
+            font-family: var(--font-mono); font-size: 14px;
+            line-height: 1.55; min-height: 100vh;
+        }
+        .grid-bg {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image:
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        main, header, footer { position: relative; z-index: 1; }
+        .topbar {
+            border-bottom: 2px solid var(--rule);
+            background: var(--bg);
+            padding: 18px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .brand {
+            display: flex; align-items: baseline; gap: 14px;
+        }
+        .brand-mark {
+            font-family: var(--font-display);
+            font-weight: 700; font-size: 28px; letter-spacing: -0.5px;
+        }
+        .brand-mark::before {
+            content: "▍"; color: var(--accent); margin-right: 4px;
+        }
+        .brand-tag {
+            font-size: 11px; color: var(--muted); text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .topbar nav { display: flex; gap: 18px; }
+        .topbar nav a {
+            color: var(--ink); text-decoration: none;
+            font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+            padding: 6px 10px; border: 1px solid transparent;
+        }
+        .topbar nav a:hover { border-color: var(--rule); }
+        .topbar nav a.active {
+            background: var(--ink); color: var(--bg);
+        }
+        main {
+            max-width: 1200px; margin: 0 auto; padding: 40px 32px 80px;
+        }
+        h1 {
+            font-family: var(--font-display); font-weight: 700;
+            font-size: 42px; line-height: 1; letter-spacing: -1.2px;
+            margin-bottom: 6px;
+        }
+        h1 .dot { color: var(--accent); }
+        .page-sub {
+            color: var(--muted); font-size: 13px;
+            margin-bottom: 28px;
+        }
+
+        /* Métricas */
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+        .metric {
+            border: 1.5px solid var(--rule);
+            padding: 18px 18px 16px;
+            background: var(--bg);
+            position: relative;
+        }
+        .metric.accent { background: var(--accent); }
+        .metric-label {
+            font-size: 10px; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--muted);
+        }
+        .metric.accent .metric-label { color: var(--ink); }
+        .metric-value {
+            font-family: var(--font-display);
+            font-weight: 700; font-size: 38px; line-height: 1.1;
+            margin-top: 6px;
+        }
+        .metric-hint {
+            font-size: 11px; color: var(--muted); margin-top: 4px;
+        }
+        .metric.accent .metric-hint { color: var(--ink-soft); }
+
+        /* Section header */
+        .section-bar {
+            display: flex; align-items: baseline; justify-content: space-between;
+            border-bottom: 2px solid var(--rule);
+            padding-bottom: 10px; margin-bottom: 0;
+        }
+        .section-bar h2 {
+            font-family: var(--font-display);
+            font-weight: 700; font-size: 18px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .section-bar .meta { font-size: 11px; color: var(--muted); }
+        .btn {
+            display: inline-block;
+            background: var(--ink); color: var(--bg);
+            font-family: var(--font-mono);
+            font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+            border: 1.5px solid var(--ink);
+            padding: 10px 18px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn:hover { background: var(--accent); color: var(--ink); }
+        .btn.danger { background: var(--bg); color: var(--danger); border-color: var(--danger); }
+
+        /* Tabla */
+        table {
+            width: 100%; border-collapse: collapse;
+            background: var(--bg);
+            margin-top: 0;
+            border: 1.5px solid var(--rule);
+            border-top: none;
+        }
+        thead th {
+            text-align: left;
+            font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--muted);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--rule);
+            background: var(--bg-soft);
+        }
+        tbody td {
+            padding: 14px 16px;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+            vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: var(--bg-soft); }
+        td .host {
+            font-weight: 700; font-size: 14px;
+        }
+        td .fqdn {
+            display: block; color: var(--muted); font-size: 11px; margin-top: 2px;
+        }
+        .ip { font-family: var(--font-mono); font-size: 13px; }
+
+        /* Estado */
+        .state {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 10px; text-transform: uppercase;
+            letter-spacing: 1.5px; font-weight: 700;
+            padding: 4px 10px;
+            border: 1.5px solid var(--rule);
+            background: var(--bg);
+        }
+        .state::before {
+            content: ""; width: 8px; height: 8px; background: var(--muted);
+            display: inline-block;
+        }
+        .state.running { border-color: var(--running); color: var(--running); }
+        .state.running::before { background: var(--running); }
+        .state.provisioning { border-color: var(--warn); color: var(--warn); }
+        .state.provisioning::before { background: var(--warn); animation: pulse 1.2s infinite; }
+        .state.failed { border-color: var(--danger); color: var(--danger); }
+        .state.failed::before { background: var(--danger); }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        td .actions { display: flex; gap: 8px; }
+        td .actions a, td .actions button {
+            font-family: var(--font-mono);
+            font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+            padding: 6px 10px;
+            border: 1px solid var(--rule);
+            background: var(--bg);
+            color: var(--ink);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        td .actions a:hover { background: var(--accent); }
+        td .actions .del { color: var(--danger); border-color: var(--danger); }
+        td .actions .del:hover { background: var(--danger); color: var(--bg); }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding: 20px 32px;
+            border-top: 2px solid var(--rule);
+            text-align: center;
+            font-size: 11px; color: var(--muted);
+            letter-spacing: 1px;
+        }
+        footer .accent { color: var(--accent-ink); background: var(--accent); padding: 2px 6px; }
+
+        /* Mockup callout */
+        .mockup-banner {
+            background: var(--ink);
+            color: var(--accent);
+            padding: 10px 32px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            position: relative; z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <div class="mockup-banner">
+        ▍ MOCKUP DE INTERFAZ · HTTPaaS · APROBACIÓN PROFESOR
+    </div>
+
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-mark">HTTPaaS</span>
+            <span class="brand-tag">HTTP as a Service · v0.1</span>
+        </div>
+        <nav>
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Aprovisionar</a>
+            <a href="#">Documentación</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Instancias activas<span class="dot">.</span></h1>
+        <p class="page-sub">El plano de control orquesta VMs Apache sobre VirtualBox, registra los hostnames en Bind9 y despliega contenido vía SSH.</p>
+
+        <!-- Métricas -->
+        <section class="metrics">
+            <div class="metric">
+                <div class="metric-label">Instancias</div>
+                <div class="metric-value">3</div>
+                <div class="metric-hint">2 running · 1 deploying</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">IPs disponibles</div>
+                <div class="metric-value">98<span style="font-size:18px;color:var(--muted)"> / 101</span></div>
+                <div class="metric-hint">rango 192.168.56.100–.200</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Servidor DNS</div>
+                <div class="metric-value" style="font-size:22px">cloud.local.</div>
+                <div class="metric-hint">192.168.56.10 · Bind9 OK</div>
+            </div>
+            <div class="metric accent">
+                <div class="metric-label">+ Nueva</div>
+                <div class="metric-value" style="font-size:22px;line-height:1.2">Aprovisionar</div>
+                <div class="metric-hint">subir .zip → desplegar</div>
+            </div>
+        </section>
+
+        <!-- Tabla -->
+        <div class="section-bar">
+            <h2>// Instancias</h2>
+            <span class="meta">actualizado hace 2 s · polling cada 3 s</span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Hostname</th>
+                    <th>IP</th>
+                    <th>Estado</th>
+                    <th>VM</th>
+                    <th>Creada</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="host">blog</span>
+                        <span class="fqdn">blog.cloud.local</span>
+                    </td>
+                    <td class="ip">192.168.56.100</td>
+                    <td><span class="state running">running</span></td>
+                    <td class="ip">httpaas-blog-a8f1</td>
+                    <td>hace 14 min</td>
+                    <td>
+                        <div class="actions">
+                            <a href="http://blog.cloud.local" target="_blank">↗ abrir</a>
+                            <a href="#">↻ reiniciar</a>
+                            <a href="#" class="del">✕ eliminar</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="host">tienda</span>
+                        <span class="fqdn">tienda.cloud.local</span>
+                    </td>
+                    <td class="ip">192.168.56.101</td>
+                    <td><span class="state running">running</span></td>
+                    <td class="ip">httpaas-tienda-3c92</td>
+                    <td>hace 6 min</td>
+                    <td>
+                        <div class="actions">
+                            <a href="http://tienda.cloud.local" target="_blank">↗ abrir</a>
+                            <a href="#">↻ reiniciar</a>
+                            <a href="#" class="del">✕ eliminar</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="host">demo-app</span>
+                        <span class="fqdn">demo-app.cloud.local</span>
+                    </td>
+                    <td class="ip">192.168.56.102</td>
+                    <td><span class="state provisioning">provisioning</span></td>
+                    <td class="ip">httpaas-demo-app-7b0e</td>
+                    <td>hace 20 s</td>
+                    <td>
+                        <div class="actions">
+                            <a href="#">⊙ ver log</a>
+                            <a href="#" class="del">✕ cancelar</a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Panel de provisión (vista previa) -->
+        <div class="section-bar" style="margin-top:48px">
+            <h2>// Formulario de aprovisionamiento</h2>
+            <span class="meta">/provision</span>
+        </div>
+        <div style="border:1.5px solid var(--rule); border-top:none; background:var(--bg); padding:24px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <div>
+                    <label style="display:block; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Hostname</label>
+                    <input style="width:100%; padding:10px; border:1.5px solid var(--rule); background:var(--bg); font-family:var(--font-mono); font-size:14px;" placeholder="miapp" disabled>
+                    <p style="font-size:11px; color:var(--muted); margin-top:4px;">Resultará en miapp.cloud.local</p>
+                </div>
+                <div>
+                    <label style="display:block; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Owner</label>
+                    <input style="width:100%; padding:10px; border:1.5px solid var(--rule); background:var(--bg); font-family:var(--font-mono); font-size:14px;" placeholder="@usuario" disabled>
+                </div>
+                <div style="grid-column:1/3">
+                    <label style="display:block; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Archivo .zip</label>
+                    <div style="border:1.5px dashed var(--rule); padding:32px; text-align:center; color:var(--muted);">
+                        ▍ arrastra el .zip aquí o haz clic para seleccionar
+                    </div>
+                </div>
+                <div style="grid-column:1/3; display:flex; justify-content:flex-end; gap:10px;">
+                    <button class="btn danger" disabled>Cancelar</button>
+                    <button class="btn" disabled>▶ Aprovisionar</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        HTTPaaS · Computación en la Nube 2026-1 · Universidad del Quindío<br>
+        VirtualBox <span class="accent">+</span> Bind9 <span class="accent">+</span> Apache <span class="accent">+</span> Go
+    </footer>
+</body>
+</html>

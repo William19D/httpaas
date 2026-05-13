@@ -1,0 +1,66 @@
+{{define "body"}}
+<section class="section-head">
+  <h1 class="section-title">
+    <span class="title-tick"></span>MÁQUINAS VIRTUALES DETECTADAS
+  </h1>
+  <p class="section-sub">
+    {{.Stats.running}} en ejecución · {{.Stats.total}} en total{{if .Stats.failed}} · {{.Stats.failed}} con error{{end}}
+    · sincronización cada 5s con VirtualBox
+  </p>
+</section>
+
+{{if .HealthErr}}
+<div class="banner banner-warn">
+  <strong>Atención:</strong> {{.HealthErr}}
+</div>
+{{end}}
+
+{{if .Instances}}
+<div class="instance-list" id="instance-list">
+  {{range .Instances}}
+  <article class="instance-card" data-id="{{.ID}}">
+    <div class="ic-col">
+      <span class="ic-label">{{if .Managed}}HOSTNAME{{else}}VM{{end}}</span>
+      <div class="ic-input"><code>{{if .Managed}}{{.FQDN}}{{else}}{{.VMName}}{{end}}</code></div>
+    </div>
+    <div class="ic-col">
+      <span class="ic-label">{{if .Managed}}URL LOCAL{{else}}SISTEMA{{end}}</span>
+      <div class="ic-input"><code>{{if .Managed}}{{if .URL}}{{.URL}}{{else}}—{{end}}{{else}}{{if .OSType}}{{.OSType}}{{else}}—{{end}}{{end}}</code></div>
+    </div>
+    <div class="ic-col">
+      <span class="ic-label">DIRECCIÓN <span class="ic-label-em">IP</span></span>
+      <div class="ic-input"><code>{{if .IP}}{{.IP}}{{else}}—{{end}}</code></div>
+    </div>
+    <div class="ic-col ic-col-state">
+      <span class="ic-label">ESTADO</span>
+      <span class="state-pill {{vboxClass .VBoxState}}" data-state="{{.VBoxState}}">
+        <span class="state-square"></span>{{vboxLabel .VBoxState}}
+      </span>
+    </div>
+    <div class="ic-col ic-col-actions">
+      {{if and .Managed (eq .VBoxState "running") .URL}}
+      <a href="{{.URL}}" target="_blank" rel="noopener" class="btn btn-primary btn-open" title="Abrir el sitio en nueva pestaña">
+      {{else}}
+      <a href="/instances/{{.ID}}" class="btn btn-primary btn-open">
+      {{end}}
+        ABRIR
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4h6v6"></path>
+          <path d="M10 14L20 4"></path>
+          <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"></path>
+        </svg>
+      </a>
+    </div>
+  </article>
+  {{end}}
+</div>
+{{else}}
+<div class="empty">
+  <div class="empty-mark">∅</div>
+  <h3>No hay VMs en VirtualBox</h3>
+  <p>Cree una VM en VirtualBox y aparecerá aquí en segundos.</p>
+</div>
+{{end}}
+
+<script src="/static/js/dashboard.js" defer></script>
+{{end}}

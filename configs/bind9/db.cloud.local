@@ -1,0 +1,33 @@
+; =============================================================
+; HTTPaaS - Zona directa cloud.local.
+; =============================================================
+;
+; Sólo contiene los registros base (SOA, NS, dns).
+; Los registros de cada instancia (web01, blog, etc.) los crea
+; la webapp Go en tiempo real a través de nsupdate firmado con
+; TSIG; quedan en el journal /var/cache/bind/db.cloud.local.jnl
+; hasta el próximo "rndc freeze + thaw".
+;
+; IMPORTANTE: el serial se debe incrementar manualmente si se
+; edita este archivo a mano. Las actualizaciones dinámicas
+; gestionan el serial automáticamente.
+; =============================================================
+
+$TTL    300
+@       IN      SOA     dns.cloud.local. admin.cloud.local. (
+                            2026051001  ; Serial AAAAMMDDNN
+                            3600        ; Refresh
+                            900         ; Retry
+                            604800      ; Expire
+                            300         ; Negative TTL
+                        )
+
+; Servidor de nombres autoritativo de la zona.
+@               IN      NS      dns.cloud.local.
+
+; Registro fijo del propio servidor DNS.
+dns             IN      A       192.168.56.10
+
+; Alias opcional: api.cloud.local. apunta al host (donde corre la webapp Go).
+; Comentar si no se quiere que la app sea resoluble por DNS.
+api             IN      A       192.168.56.1

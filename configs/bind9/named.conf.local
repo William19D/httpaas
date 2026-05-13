@@ -1,0 +1,43 @@
+// =============================================================
+// HTTPaaS - Definición de la zona cloud.local.
+// =============================================================
+//
+// Declara la zona DNS local que aloja todos los registros de las
+// instancias HTTPaaS y permite actualizaciones dinámicas
+// autenticadas por la clave TSIG llamada "httpaas-key".
+//
+// La clave en sí se incluye desde un archivo aparte (named.conf.keys)
+// generado por tsig-keygen durante la instalación; eso evita repetir
+// el secreto en este archivo.
+//
+// La política update-policy "grant httpaas-key zonesub ANY" significa:
+//   "cualquier petición de nsupdate firmada con httpaas-key puede
+//    crear, borrar o actualizar cualquier subnombre de cloud.local."
+// Justo lo que la webapp Go necesita.
+// =============================================================
+
+include "/etc/bind/named.conf.keys";
+
+zone "cloud.local." {
+    type master;
+    file "/etc/bind/zones/db.cloud.local";
+
+    // Permitir nsupdate sólo si la petición está firmada con la TSIG key.
+    update-policy {
+        grant httpaas-key zonesub ANY;
+    };
+
+    // Notificaciones desactivadas porque no hay secundarios.
+    notify no;
+};
+
+// Zona inversa para 192.168.56.0/24. Permite que dig -x funcione
+// y que herramientas como traceroute muestren nombres legibles.
+zone "56.168.192.in-addr.arpa." {
+    type master;
+    file "/etc/bind/zones/db.192.168.56";
+    update-policy {
+        grant httpaas-key zonesub ANY;
+    };
+    notify no;
+};

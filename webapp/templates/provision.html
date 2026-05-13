@@ -1,0 +1,67 @@
+{{define "body"}}
+<section class="section-head">
+  <h1 class="section-title">
+    <span class="title-tick"></span>APROVISIONAR NUEVA INSTANCIA
+  </h1>
+  <p class="section-sub">Suba un .zip con su sitio. La plataforma crea VM, asigna IP, registra DNS y despliega.</p>
+</section>
+
+<div class="form-grid">
+  <form method="POST" enctype="multipart/form-data" action="/provision" class="card form-card">
+    <div class="field">
+      <label class="ic-label" for="hostname">HOSTNAME</label>
+      <div class="ic-input ic-input--editable">
+        <input type="text" id="hostname" name="hostname" required
+               pattern="[a-z0-9][a-z0-9\-]*[a-z0-9]" minlength="2" maxlength="30"
+               placeholder="mi-sitio" autocomplete="off">
+        <span class="input-suffix">.{{.Domain}}</span>
+      </div>
+      <small>Solo minúsculas, dígitos y guiones. Sin guion al inicio o final.</small>
+    </div>
+
+    <div class="field">
+      <label class="ic-label" for="owner">PROPIETARIO <span class="optional">(opcional)</span></label>
+      <div class="ic-input ic-input--editable">
+        <input type="text" id="owner" name="owner" placeholder="jperez">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="ic-label" for="description">DESCRIPCIÓN <span class="optional">(opcional)</span></label>
+      <div class="ic-input ic-input--editable">
+        <input type="text" id="description" name="description"
+               placeholder="Portafolio, demo de clase, etc.">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="ic-label" for="zip">ARCHIVO .ZIP DEL SITIO</label>
+      <div class="ic-input ic-input--editable ic-input--file">
+        <input type="file" id="zip" name="zip" accept=".zip" required>
+      </div>
+      <small>Debe contener al menos un <code>index.html</code> en la raíz.</small>
+    </div>
+
+    <div class="form-actions">
+      <a href="/" class="btn btn-ghost">CANCELAR</a>
+      <button type="submit" class="btn btn-primary">▶ APROVISIONAR</button>
+    </div>
+  </form>
+
+  <aside class="card form-side">
+    <h2 class="card-title">¿QUÉ VA A PASAR?</h2>
+    <ol class="timeline">
+      <li><strong>Clonar VM</strong> desde plantilla con disco multiconexión</li>
+      <li><strong>Configurar red</strong> con IP estática del rango privado</li>
+      <li><strong>Arrancar Apache</strong> en la VM</li>
+      <li><strong>Registrar DNS</strong> en Bind9 (<code>nsupdate</code> + TSIG)</li>
+      <li><strong>Desplegar zip</strong> en <code>/var/www/html</code></li>
+      <li><strong>Publicar URL</strong> en el dashboard</li>
+    </ol>
+    <div class="info-box">
+      <span class="ic-label">TIEMPO ESTIMADO</span>
+      <strong>~2-4 minutos</strong>
+    </div>
+  </aside>
+</div>
+{{end}}

@@ -1,0 +1,27 @@
+# =============================================================
+# HTTPaaS - Unidad systemd que ejecuta first-boot.sh
+# =============================================================
+# Se instala como /etc/systemd/system/httpaas-firstboot.service
+# y se habilita una sola vez (systemctl enable httpaas-firstboot).
+# El propio script es idempotente, así que correr en cada boot
+# es seguro y permite re-configurar simplemente reiniciando la VM.
+# =============================================================
+
+[Unit]
+Description=HTTPaaS first-boot configurator (reads VBox guest properties)
+# Esperamos a tener red mínima de VirtualBox y a que el demonio de
+# guest-additions esté arriba para que VBoxControl funcione.
+After=network-pre.target virtualbox-guest-utils.service
+Wants=network-pre.target
+Before=apache2.service ssh.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/httpaas-firstboot
+StandardOutput=journal+console
+StandardError=journal+console
+TimeoutSec=120
+
+[Install]
+WantedBy=multi-user.target

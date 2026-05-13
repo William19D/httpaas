@@ -1,0 +1,30 @@
+# Build artifacts
+webapp/httpaas
+webapp/httpaas.exe
+webapp/httpaas.exe~
+*.exe
+*.test
+*.out
+
+# Generated config with machine-specific paths
+webapp/config.json
+
+# Runtime state (per-host, contains secrets)
+webapp/data/dnskey.conf
+webapp/data/instances.json
+webapp/data/sites/
+webapp/uploads/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+go.sum.bak
+
+# Local logs
+*.log
