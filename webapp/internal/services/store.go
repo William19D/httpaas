@@ -102,6 +102,20 @@ func (s *InstanceStore) All() []*models.Instance {
 	return out
 }
 
+// UsedIPs devuelve el conjunto de IPs asignadas a instancias web.
+// Se usa para evitar colisiones al asignar IPs a instancias de BD.
+func (s *InstanceStore) UsedIPs() map[string]bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	used := make(map[string]bool, len(s.Instances))
+	for _, v := range s.Instances {
+		if v.IP != "" {
+			used[v.IP] = true
+		}
+	}
+	return used
+}
+
 // HostnameTaken indica si un hostname (corto) ya está en uso.
 func (s *InstanceStore) HostnameTaken(hostname string) bool {
 	s.mu.RLock()

@@ -1,0 +1,16 @@
+[Unit]
+Description=HTTPaaS DB First-Boot Configuration
+After=network.target vboxadd-service.service
+ConditionPathExists=!/var/lib/httpaas/applied
+# Se ejecuta sólo si /var/lib/httpaas/applied no existe todavía.
+# Una vez que el script termina bien, escribe ese archivo → no vuelve a correr.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/httpaas-db-firstboot.sh
+RemainAfterExit=yes
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

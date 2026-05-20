@@ -57,8 +57,8 @@ type NetworkConfig struct {
 
 type VBoxConfig struct {
 	ManageBin    string `json:"manage_bin"`    // ruta al binario VBoxManage (Windows usa .exe)
-	TemplateVM   string `json:"template_vm"`   // nombre VM plantilla
-	TemplateDisk string `json:"template_disk"` // ruta al disco multiconexión
+	TemplateVM   string `json:"template_vm"`   // nombre VM plantilla Apache
+	TemplateDisk string `json:"template_disk"` // ruta al disco multiconexión Apache
 	TemplateIP   string `json:"template_ip"`   // IP fija de la VM plantilla con Apache (host-only)
 	VMFolder     string `json:"vm_folder"`     // donde crear VMs nuevas
 	MemoryMB     int    `json:"memory_mb"`     // RAM por instancia
@@ -67,6 +67,12 @@ type VBoxConfig struct {
 	// VMNameFilter es un filtro opcional (prefijo o substring) para limitar
 	// qué VMs aparecen en el dashboard. Vacío = mostrar todas.
 	VMNameFilter string `json:"vm_name_filter"`
+
+	// Plantillas para el servicio administrado de bases de datos (DBaaS).
+	MariaDBTemplateVM      string `json:"mariadb_template_vm"`      // nombre VM plantilla MariaDB
+	MariaDBTemplateDisk    string `json:"mariadb_template_disk"`    // disco multiconexión MariaDB (.vdi)
+	PostgreSQLTemplateVM   string `json:"postgresql_template_vm"`   // nombre VM plantilla PostgreSQL
+	PostgreSQLTemplateDisk string `json:"postgresql_template_disk"` // disco multiconexión PostgreSQL (.vdi)
 }
 
 type SSHConfig struct {
@@ -104,6 +110,11 @@ func Default() *Config {
 			VMFolder:     filepath.Join(home, "VirtualBox VMs"),
 			MemoryMB:     768,
 			CPUs:         1,
+
+			MariaDBTemplateVM:      "httpaas-mariadb",
+			MariaDBTemplateDisk:    filepath.Join(home, "VirtualBox VMs/httpaas-mariadb/httpaas-mariadb.vdi"),
+			PostgreSQLTemplateVM:   "httpaas-postgresql",
+			PostgreSQLTemplateDisk: filepath.Join(home, "VirtualBox VMs/httpaas-postgresql/httpaas-postgresql.vdi"),
 		},
 		SSH: SSHConfig{
 			User:       "root",

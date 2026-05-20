@@ -1,0 +1,172 @@
+{{define "body"}}
+{{with .Instance}}
+<div class="detail-topbar">
+  <a href="/dbaas" class="link-back">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path>
+    </svg>
+    VOLVER AL PANEL DBaaS
+  </a>
+  <div class="link-fqdn">
+    <span class="globe">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-45 12 12)"></ellipse>
+        <circle cx="12" cy="12" r="10"></circle>
+      </svg>
+    </span>
+    <code>{{.DBName}} — {{.EngineLabel}}</code>
+  </div>
+</div>
+<div class="detail-rule"></div>
+
+<section class="detail-hero">
+  <div class="hero-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+      <path d="M3 5v5c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path>
+      <path d="M3 10v5c0 1.66 4.03 3 9 3s9-1.34 9-3v-5"></path>
+      <path d="M3 15v4c0 1.66 4.03 3 9 3s9-1.34 9-3v-4"></path>
+    </svg>
+  </div>
+  <h1 class="detail-title">
+    {{if eq .VBoxState "running"}}BASE DE DATOS EN EJECUCIÓN
+    {{else if eq .VBoxState "poweroff"}}BASE DE DATOS APAGADA
+    {{else if eq .VBoxState "starting"}}INICIANDO BASE DE DATOS
+    {{else if eq .VBoxState "aborted"}}BASE DE DATOS ABORTADA
+    {{else}}APROVISIONANDO BASE DE DATOS{{end}}
+  </h1>
+  <p class="detail-sub">{{.DBName}} · {{.EngineLabel}} · {{.VMName}}</p>
+</section>
+
+<div class="detail-grid">
+  <section class="card">
+    <h2 class="card-title">INFORMACIÓN DE LA BASE DE DATOS</h2>
+    <div class="kv">
+      <span class="ic-label">NOMBRE BD</span>
+      <div class="ic-input"><code>{{.DBName}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">MOTOR</span>
+      <div class="ic-input"><code>{{.EngineLabel}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">USUARIO</span>
+      <div class="ic-input"><code>{{.DBUser}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">CONTRASEÑA</span>
+      <div class="ic-input"><code>{{.DBPassword}}</code></div>
+    </div>
+    {{if .SQLFile}}
+    <div class="kv">
+      <span class="ic-label">ARCHIVO SQL</span>
+      <div class="ic-input"><code>{{.SQLFile}}</code></div>
+    </div>
+    {{end}}
+    <div class="kv">
+      <span class="ic-label">ESTADO VM</span>
+      <div class="ic-input ic-input--status">
+        <span class="state-pill {{vboxClass .VBoxState}}">
+          <span class="state-square"></span>{{vboxLabel .VBoxState}}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title">RED Y CONEXIÓN</h2>
+    <div class="kv">
+      <span class="ic-label">HOST</span>
+      <div class="ic-input"><code>{{if .IP}}{{.IP}}{{else}}—{{end}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">PUERTO</span>
+      <div class="ic-input"><code>{{.DBPort}}</code></div>
+    </div>
+    <div class="kv">
+      <span class="ic-label">VM VIRTUALBOX</span>
+      <div class="ic-input"><code>{{.VMName}}</code></div>
+    </div>
+    {{if .VMUUID}}
+    <div class="kv">
+      <span class="ic-label">UUID</span>
+      <div class="ic-input"><code>{{.VMUUID}}</code></div>
+    </div>
+    {{end}}
+  </section>
+</div>
+
+{{if eq .VBoxState "running"}}
+<section class="open-bar">
+  <div>
+    <span class="ic-label">ACCESO DESDE DBeaver / TERMINAL</span>
+    <code class="url-large">{{.CLICommand}}</code>
+  </div>
+</section>
+
+<section class="card" style="margin-top:16px">
+  <h2 class="card-title">CADENAS DE CONEXIÓN</h2>
+  <div class="kv">
+    <span class="ic-label">JDBC (DBeaver / Java)</span>
+    <div class="ic-input"><code>{{.JDBCUrl}}</code></div>
+  </div>
+  <div class="kv">
+    <span class="ic-label">CLI</span>
+    <div class="ic-input"><code>{{.CLICommand}}</code></div>
+  </div>
+  <div class="kv">
+    <span class="ic-label">HOST:PUERTO</span>
+    <div class="ic-input"><code>{{.IP}}:{{.DBPort}}</code></div>
+  </div>
+  <div class="kv">
+    <span class="ic-label">USUARIO / CONTRASEÑA</span>
+    <div class="ic-input"><code>{{.DBUser}} / {{.DBPassword}}</code></div>
+  </div>
+</section>
+{{end}}
+
+{{if .LastError}}
+<div class="banner banner-error">
+  <strong>Último error:</strong>
+  <pre>{{.LastError}}</pre>
+</div>
+{{end}}
+
+<section class="logs">
+  <h2 class="card-title">EVENTOS <span class="log-counter" id="log-counter">{{len .Logs}} eventos</span></h2>
+  <div class="log-viewer" id="log-viewer">
+    {{range .Logs}}
+    <div class="log-line log-{{.Level}}">
+      <span class="log-time">{{.Timestamp.Format "15:04:05"}}</span>
+      <span class="log-level">[{{upper .Level}}]</span>
+      <span class="log-msg">{{.Message}}</span>
+    </div>
+    {{end}}
+  </div>
+</section>
+
+<section class="instance-actions">
+  <form method="POST" action="/dbaas/{{.ID}}/delete" class="inline"
+        onsubmit="return confirm('¿Eliminar la instancia {{.DBName}}? Se apagará y borrará la VM.')">
+    <button type="submit" class="btn btn-danger">✕ ELIMINAR INSTANCIA</button>
+  </form>
+</section>
+
+<script>
+  const dbInstanceId = "{{.ID}}";
+  // Polling del estado cada 5 s mientras no esté running.
+  (function poll() {
+    if ("{{.VBoxState}}" === "running") return;
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/dbaas/' + dbInstanceId + '/status');
+        const data = await res.json();
+        if (data.vbox_state === 'running' || data.vbox_state === 'aborted') {
+          location.reload();
+        }
+      } catch(_) {}
+    }, 4000);
+  })();
+</script>
+{{end}}
+{{end}}

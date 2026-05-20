@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/cloud-uq/httpaas/internal/config"
+	"github.com/cloud-uq/httpaas/internal/models"
 	"github.com/cloud-uq/httpaas/internal/services"
 	"github.com/cloud-uq/httpaas/internal/util"
 )
@@ -22,6 +23,8 @@ type Handler struct {
 	cfg          *config.Config
 	store        *services.InstanceStore
 	orchestrator *services.Orchestrator
+	dbStore      *services.DBInstanceStore
+	dbOrch       *services.DBOrchestrator
 	tpl          map[string]*template.Template
 }
 
@@ -30,6 +33,12 @@ func New(cfg *config.Config, store *services.InstanceStore,
 	h := &Handler{cfg: cfg, store: store, orchestrator: orch}
 	h.loadTemplates()
 	return h
+}
+
+// SetDBServices registra el store y el orquestador de bases de datos.
+func (h *Handler) SetDBServices(dbStore *services.DBInstanceStore, dbOrch *services.DBOrchestrator) {
+	h.dbStore = dbStore
+	h.dbOrch = dbOrch
 }
 
 // loadTemplates parsea cada página junto con el layout en un set independiente.
@@ -117,7 +126,7 @@ func (h *Handler) loadTemplates() {
 		},
 	}
 
-	pages := []string{"dashboard.html", "provision.html", "instance.html"}
+	pages := []string{"dashboard.html", "provision.html", "instance.html", "dbaas.html", "db_instance.html"}
 	h.tpl = make(map[string]*template.Template, len(pages))
 	layout := filepath.Join(h.cfg.TemplateDir, "layout.html")
 	for _, p := range pages {
@@ -312,6 +321,138 @@ func (h *Handler) APIInstanceStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(inst)
 }
+
+// ─── DBaaS handlers ──────────────────────────────────────────────────────────
+
+// DBaaSDashboard - GET /dbaas
+// Muestra el formulario de creación y la lista de instancias de BD.
+func (h *Handler) DBaaSDashboard(w http.ResponseWriter, r *http.Request) {
+	var instances []*models.DBInstance
+	if h.dbStore != nil {
+		instances = h.dbStore.All()
+	}
+	h.render(w, "dbaas.html", map[string]any{
+		"Title":     "Bases de Datos",
+		"Instances": instances,
+	})
+}
+
+// DBaaSProvision - POST /dbaas
+// Recibe el formulario, valida datos, inicia el aprovisionamiento y redirige.
+func (h *Handler) DBaaSProvision(w http.ResponseWriter, r *http.Request) {
+	if h.dbOrch == nil {
+		http.Error(w, "DBaaS no inicializado", http.StatusServiceUnavailable)
+		return
+	}
+	if err := r.ParseMultipartForm(50 << 20); err != nil {
+		http.Error(w, "formulario inválido: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	dbName := strings.ToLower(strings.TrimSpace(r.FormValue("db_name")))
+	dbUser := strings.ToLower(strings.TrimSpace(r.FormValue("db_user")))
+	engine := strings.TrimSpace(r.FormValue("db_engine"))
+
+	if dbName == "" || dbUser == "" || engine == "" {
+		http.Error(w, "nombre de BD, usuario y motor son obligatorios", http.StatusBadRequest)
+		return
+	}
+
+	// Procesar el archivo .sql (opcional).
+	var sqlPath, sqlName string
+	if file, header, err := r.FormFile("sql_file"); err == nil {
+		defer file.Close()
+		if strings.HasSuffix(strings.ToLower(header.Filename), ".sql") {
+			tmpName := fmt.Sprintf("%s-%s.sql", time.Now().Format("20060102-150405"), dbName)
+			dstPath := filepath.Join(h.cfg.UploadDir, tmpName)
+			out, err := os.Create(dstPath)
+			if err == nil {
+				if _, err := io.Copy(out, file); err == nil {
+					sqlPath = dstPath
+					sqlName = header.Filename
+				}
+				out.Close()
+			}
+		}
+	}
+
+	inst, err := h.dbOrch.Provision(services.DBProvisionRequest{
+		DBName:   dbName,
+		DBUser:   dbUser,
+		DBEngine: models.DBEngine(engine),
+		SQLPath:  sqlPath,
+		SQLName:  sqlName,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, r, "/dbaas/"+inst.ID, http.StatusSeeOther)
+}
+
+// DBaaSDetail - GET /dbaas/{id}
+// Muestra el detalle de una instancia de BD (info de conexión + logs).
+func (h *Handler) DBaaSDetail(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if h.dbStore == nil {
+		http.NotFound(w, r)
+		return
+	}
+	inst := h.dbStore.Get(id)
+	if inst == nil {
+		http.NotFound(w, r)
+		return
+	}
+	h.render(w, "db_instance.html", map[string]any{
+		"Title":      inst.DBName,
+		"Instance":   inst,
+		"HideTopbar": true,
+	})
+}
+
+// DBaaSDelete - POST /dbaas/{id}/delete
+// Elimina la VM y el registro DNS de la instancia de BD.
+func (h *Handler) DBaaSDelete(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if h.dbOrch == nil {
+		http.Redirect(w, r, "/dbaas", http.StatusSeeOther)
+		return
+	}
+	go func() {
+		if err := h.dbOrch.Delete(id); err != nil {
+			log.Printf("DBaaS Delete %s: %v", id, err)
+		}
+	}()
+	http.Redirect(w, r, "/dbaas", http.StatusSeeOther)
+}
+
+// APIListDBInstances - GET /api/dbaas (JSON para polling)
+func (h *Handler) APIListDBInstances(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var instances []*models.DBInstance
+	if h.dbStore != nil {
+		instances = h.dbStore.All()
+	}
+	_ = json.NewEncoder(w).Encode(instances)
+}
+
+// APIDBInstanceStatus - GET /api/dbaas/{id}/status (JSON para polling individual)
+func (h *Handler) APIDBInstanceStatus(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if h.dbStore == nil {
+		http.NotFound(w, r)
+		return
+	}
+	inst := h.dbStore.Get(id)
+	if inst == nil {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(inst)
+}
+
+// ─── Health ───────────────────────────────────────────────────────────────────
 
 // Health - GET /health
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {

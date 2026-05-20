@@ -47,6 +47,11 @@ func main() {
 		log.Fatalf("Error inicializando almacén: %v", err)
 	}
 
+	dbStore, err := services.NewDBInstanceStore(cfg.DataDir + "/db_instances.json")
+	if err != nil {
+		log.Fatalf("Error inicializando almacén de BD: %v", err)
+	}
+
 	services.SetVBoxBin(cfg.VirtualBox.ManageBin)
 	vbox := services.NewVBoxService(cfg)
 	dns := services.NewDNSService(cfg)
@@ -59,6 +64,8 @@ func main() {
 
 	orchestrator := services.NewOrchestrator(cfg, store, vbox, dns, ssh, sites)
 	orchestrator.RestoreSites()
+
+	dbOrch := services.NewDBOrchestrator(cfg, dbStore, store, vbox, dns, ssh)
 
 	// Verificar prerrequisitos al arrancar
 	if err := orchestrator.HealthCheck(); err != nil {
@@ -82,8 +89,18 @@ func main() {
 		}
 	}()
 
+	// Sincronizar estado de instancias de BD cada 5 segundos.
+	go func() {
+		t := time.NewTicker(5 * time.Second)
+		defer t.Stop()
+		for range t.C {
+			dbOrch.SyncVBoxState()
+		}
+	}()
+
 	// Configurar handlers HTTP
 	h := handlers.New(cfg, store, orchestrator)
+	h.SetDBServices(dbStore, dbOrch)
 	mux := http.NewServeMux()
 
 	// Archivos estáticos
@@ -101,6 +118,15 @@ func main() {
 	mux.HandleFunc("GET /instances/{id}", h.InstanceDetail)
 	mux.HandleFunc("GET /api/instances", h.APIListInstances)
 	mux.HandleFunc("GET /api/instances/{id}/status", h.APIInstanceStatus)
+
+	// Rutas DBaaS
+	mux.HandleFunc("GET /dbaas", h.DBaaSDashboard)
+	mux.HandleFunc("POST /dbaas", h.DBaaSProvision)
+	mux.HandleFunc("GET /dbaas/{id}", h.DBaaSDetail)
+	mux.HandleFunc("POST /dbaas/{id}/delete", h.DBaaSDelete)
+	mux.HandleFunc("GET /api/dbaas", h.APIListDBInstances)
+	mux.HandleFunc("GET /api/dbaas/{id}/status", h.APIDBInstanceStatus)
+
 	mux.HandleFunc("GET /health", h.Health)
 
 	// Middleware: logging + recover de pánicos

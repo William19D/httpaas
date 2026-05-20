@@ -292,6 +292,72 @@ func (v *VBoxService) guestProperty(name, key string) string {
 	return strings.TrimSpace(strings.TrimPrefix(out, "Value:"))
 }
 
+// SetGuestProperty inyecta una propiedad de invitado en la VM apagada.
+// Es la única forma de pasar configuración (IP, hostname…) antes del primer arranque.
+func (v *VBoxService) SetGuestProperty(vmName, key, value string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := v.run(ctx, "guestproperty", "set", vmName, key, value)
+	return err
+}
+
+// CreateDBInstance crea una nueva VM para una instancia de base de datos.
+// A diferencia de CreateInstance, recibe el disco plantilla como parámetro,
+// de modo que puede usar la plantilla MariaDB o la de PostgreSQL según lo que pida el usuario.
+func (v *VBoxService) CreateDBInstance(vmName, macHex, templateDisk string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	// Registrar la nueva VM.
+	if _, err := v.run(ctx, "createvm",
+		"--name", vmName,
+		"--ostype", "Debian_64",
+		"--register"); err != nil {
+		return fmt.Errorf("createvm %s: %w", vmName, err)
+	}
+
+	// Configurar RAM, CPUs y dispositivos innecesarios.
+	if _, err := v.run(ctx, "modifyvm", vmName,
+		"--memory", fmt.Sprintf("%d", v.cfg.VirtualBox.MemoryMB),
+		"--cpus", fmt.Sprintf("%d", v.cfg.VirtualBox.CPUs),
+		"--vram", "16",
+		"--graphicscontroller", "vmsvga",
+		"--audio", "none",
+		"--usb", "off"); err != nil {
+		return fmt.Errorf("modifyvm %s: %w", vmName, err)
+	}
+
+	// Red: host-only (para llegar desde el host) + NAT (para que la VM acceda a Internet).
+	if _, err := v.run(ctx, "modifyvm", vmName,
+		"--nic1", "hostonly",
+		"--hostonlyadapter1", v.cfg.Network.HostOnlyNet,
+		"--macaddress1", macHex,
+		"--nic2", "nat"); err != nil {
+		return fmt.Errorf("modifyvm red %s: %w", vmName, err)
+	}
+
+	// Controlador SATA con el disco multiconexión de la plantilla de BD.
+	if _, err := v.run(ctx, "storagectl", vmName,
+		"--name", "SATA",
+		"--add", "sata",
+		"--portcount", "2",
+		"--bootable", "on"); err != nil {
+		return fmt.Errorf("storagectl %s: %w", vmName, err)
+	}
+
+	if _, err := v.run(ctx, "storageattach", vmName,
+		"--storagectl", "SATA",
+		"--port", "0",
+		"--device", "0",
+		"--type", "hdd",
+		"--mtype", "multiattach",
+		"--medium", templateDisk); err != nil {
+		return fmt.Errorf("storageattach %s (disk=%s): %w", vmName, templateDisk, err)
+	}
+
+	return nil
+}
+
 // StartVMByName arranca una VM por nombre (alias semántico de StartVM).
 func (v *VBoxService) StartVMByName(name string) error {
 	return v.StartVM(name)

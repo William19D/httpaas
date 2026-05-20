@@ -1,0 +1,149 @@
+{{define "body"}}
+<section class="section-head">
+  <h1 class="section-title">
+    <span class="title-tick"></span>SERVICIO ADMINISTRADO DE BASES DE DATOS
+  </h1>
+  <p class="section-sub">
+    Aprovisiona instancias MariaDB o PostgreSQL sobre VirtualBox con disco multiconexión.
+    {{if .Instances}}{{len .Instances}} instancia{{if gt (len .Instances) 1}}s{{end}} activa{{if gt (len .Instances) 1}}s{{end}}.{{end}}
+  </p>
+</section>
+
+{{/* ── Formulario de creación ── */}}
+<div class="form-grid">
+  <form method="POST" enctype="multipart/form-data" action="/dbaas" class="card form-card">
+    <div class="field">
+      <label class="ic-label" for="db_name">NOMBRE DE LA BASE DE DATOS</label>
+      <div class="ic-input ic-input--editable">
+        <input type="text" id="db_name" name="db_name" required
+               pattern="[a-z0-9_]+" minlength="2" maxlength="40"
+               placeholder="mi_base_datos" autocomplete="off">
+      </div>
+      <small>Solo minúsculas, dígitos y guiones bajos.</small>
+    </div>
+
+    <div class="field">
+      <label class="ic-label" for="db_user">USUARIO ADMINISTRADOR</label>
+      <div class="ic-input ic-input--editable">
+        <input type="text" id="db_user" name="db_user" required
+               pattern="[a-z0-9_]+" minlength="2" maxlength="32"
+               placeholder="jperez" autocomplete="off">
+      </div>
+      <small>El usuario tendrá privilegios totales sobre la base de datos.</small>
+    </div>
+
+    <div class="field">
+      <span class="ic-label">MOTOR DE BASE DE DATOS</span>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="db_engine" value="mariadb" required checked>
+          <span class="radio-label">MariaDB</span>
+          <span class="radio-sub">Puerto 3306</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="db_engine" value="postgresql">
+          <span class="radio-label">PostgreSQL</span>
+          <span class="radio-sub">Puerto 5432</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="ic-label" for="sql_file">ARCHIVO .SQL <span class="optional">(opcional)</span></label>
+      <div class="ic-input ic-input--editable ic-input--file">
+        <input type="file" id="sql_file" name="sql_file" accept=".sql">
+      </div>
+      <small>Se ejecutará en la BD una vez aprovisionada (CREATE TABLE, INSERT, etc.).</small>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">▶ CREAR SERVICIO</button>
+    </div>
+  </form>
+
+  <aside class="card form-side">
+    <h2 class="card-title">¿QUÉ VA A PASAR?</h2>
+    <ol class="timeline">
+      <li><strong>Clonar VM</strong> desde plantilla con disco multiconexión</li>
+      <li><strong>Configurar red</strong> con IP estática del rango privado</li>
+      <li><strong>Arrancar VM</strong> en modo headless y esperar first-boot</li>
+      <li><strong>Crear BD y usuario</strong> con privilegios totales vía SSH</li>
+      <li><strong>Ejecutar .sql</strong> (si se adjuntó)</li>
+      <li><strong>Registrar DNS</strong> en Bind9</li>
+    </ol>
+    <div class="info-box">
+      <span class="ic-label">TIEMPO ESTIMADO</span>
+      <strong>~3-6 minutos</strong>
+    </div>
+  </aside>
+</div>
+
+{{/* ── Lista de instancias de BD ── */}}
+{{if .Instances}}
+<section class="section-head" style="margin-top:32px">
+  <h2 class="section-title" style="font-size:13px">
+    <span class="title-tick"></span>INSTANCIAS EN EJECUCIÓN
+  </h2>
+</section>
+
+<div class="instance-list" id="db-instance-list">
+  {{range .Instances}}
+  <article class="instance-card" data-id="{{.ID}}">
+    <div class="ic-col">
+      <span class="ic-label">MOTOR / BD</span>
+      <div class="ic-input">
+        <code>{{.EngineLabel}} · {{.DBName}}</code>
+      </div>
+    </div>
+    <div class="ic-col">
+      <span class="ic-label">USUARIO</span>
+      <div class="ic-input"><code>{{.DBUser}}</code></div>
+    </div>
+    <div class="ic-col">
+      <span class="ic-label">HOST <span class="ic-label-em">:</span> PUERTO</span>
+      <div class="ic-input"><code>{{if .IP}}{{.IP}}{{else}}—{{end}}:{{.DBPort}}</code></div>
+    </div>
+    <div class="ic-col ic-col-state">
+      <span class="ic-label">ESTADO</span>
+      <span class="state-pill {{vboxClass .VBoxState}}" data-state="{{.VBoxState}}">
+        <span class="state-square"></span>{{vboxLabel .VBoxState}}
+      </span>
+    </div>
+    <div class="ic-col ic-col-actions">
+      <a href="/dbaas/{{.ID}}" class="btn btn-primary btn-open">
+        VER
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 4h6v6"></path>
+          <path d="M10 14L20 4"></path>
+          <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"></path>
+        </svg>
+      </a>
+    </div>
+  </article>
+  {{end}}
+</div>
+{{end}}
+
+<script>
+// Polling ligero: refresca las tarjetas de estado cada 5s igual que el dashboard de VMs.
+(function() {
+  const list = document.getElementById('db-instance-list');
+  if (!list) return;
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/dbaas');
+      const data = await res.json();
+      if (!Array.isArray(data)) return;
+      data.forEach(inst => {
+        const card = list.querySelector(`[data-id="${inst.ID}"]`);
+        if (!card) return;
+        const pill = card.querySelector('.state-pill');
+        if (pill) {
+          pill.dataset.state = inst.VBoxState || '';
+        }
+      });
+    } catch (_) {}
+  }, 5000);
+})();
+</script>
+{{end}}
