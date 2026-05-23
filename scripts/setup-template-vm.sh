@@ -152,6 +152,7 @@ phase_customize() {
     # 3. Subir archivos por SSH. Usamos sshpass para la primera vez,
     #    luego instalamos llave y desactivamos contraseña.
     local SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p 2222"
+    local SCP_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P 2222"
 
     if ! command -v sshpass >/dev/null 2>&1; then
         die "sshpass no instalado. Instala con: sudo apt install sshpass"
@@ -162,7 +163,7 @@ phase_customize() {
         "mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo '$pub_key' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 
     log_info "Subiendo first-boot.sh y unidades systemd..."
-    sshpass -p cloud scp $SSH_OPTS \
+    sshpass -p cloud scp $SCP_OPTS \
         "$CONFIGS_DIR/vm-template/first-boot.sh" \
         "$CONFIGS_DIR/vm-template/httpaas-firstboot.service" \
         "$CONFIGS_DIR/apache/000-default.conf" \

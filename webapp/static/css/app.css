@@ -518,6 +518,46 @@ code, pre { font-family: var(--font-mono); }
   gap: 4px;
 }
 
+/* ---------- Radio group (DBaaS engine selector) ---------- */
+.radio-group {
+  display: flex;
+  gap: 12px;
+}
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.15s, background 0.15s;
+}
+.radio-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.radio-option input[type="radio"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.radio-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+}
+.radio-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: auto;
+  font-family: var(--font-mono);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 980px) {
   .instance-card {
