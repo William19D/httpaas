@@ -169,6 +169,11 @@ phase_customize() {
         "$CONFIGS_DIR/apache/000-default.conf" \
         cloud@127.0.0.1:/tmp/
 
+    log_info "Instalando virtualbox-guest-utils vía apt..."
+    sshpass -p cloud ssh $SSH_OPTS cloud@127.0.0.1 \
+        "sudo apt-get update -qq && sudo apt-get install -y virtualbox-guest-utils 2>&1 | tail -5" || \
+        log_warn "virtualbox-guest-utils no se pudo instalar; continuando de todas formas."
+
     log_info "Aplicando configuración dentro de la VM..."
     sshpass -p cloud ssh $SSH_OPTS cloud@127.0.0.1 bash -s <<'REMOTE'
 set -euo pipefail
@@ -195,8 +200,8 @@ sudo ln -sf /etc/machine-id /var/lib/dbus/machine-id
 # Asegurarse de que el flag idempotente parta limpio
 sudo rm -f /var/lib/httpaas/applied
 
-# Reconfigurar SSH para regenerar llaves en primer boot.
-sudo dpkg-reconfigure openssh-server 2>/dev/null || true
+# Regenerar llaves SSH para que el host tenga llaves propias al arrancar.
+sudo ssh-keygen -A
 
 # Apagar la VM al terminar.
 sudo systemctl poweroff
