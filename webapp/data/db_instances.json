@@ -1,0 +1,198 @@
+{
+  "182628d5-64be-4d64-b0b6-c179f069a157": {
+    "id": "182628d5-64be-4d64-b0b6-c179f069a157",
+    "vm_name": "httpaas-db-base-182628d5",
+    "vm_uuid": "",
+    "ip": "192.168.56.102",
+    "state": "running",
+    "vbox_state": "running",
+    "db_name": "base",
+    "db_user": "luis",
+    "db_password": "f6f732419094931437f32ebc38d3ea6a",
+    "db_engine": "mariadb",
+    "db_port": 3306,
+    "sql_file": "basico_tablas_datos.sql",
+    "logs": [
+      {
+        "t": "2026-05-23T19:44:05.6274825-05:00",
+        "lvl": "info",
+        "msg": "Solicitud: BD=base usuario=luis motor=MariaDB"
+      },
+      {
+        "t": "2026-05-23T19:44:05.6274825-05:00",
+        "lvl": "info",
+        "msg": "IP asignada: 192.168.56.102"
+      },
+      {
+        "t": "2026-05-23T19:44:05.62881-05:00",
+        "lvl": "info",
+        "msg": "Creando VM httpaas-db-base-182628d5 (motor: MariaDB)"
+      },
+      {
+        "t": "2026-05-23T19:44:06.1766278-05:00",
+        "lvl": "info",
+        "msg": "VM creada con disco multiconexión: httpaas-mariadb.vdi"
+      },
+      {
+        "t": "2026-05-23T19:44:06.6352836-05:00",
+        "lvl": "info",
+        "msg": "Guest properties inyectadas (IP=192.168.56.102, GW=192.168.56.1)"
+      },
+      {
+        "t": "2026-05-23T19:44:06.6352836-05:00",
+        "lvl": "info",
+        "msg": "Arrancando VM en modo headless…"
+      },
+      {
+        "t": "2026-05-23T19:44:11.284525-05:00",
+        "lvl": "info",
+        "msg": "VM en estado running"
+      },
+      {
+        "t": "2026-05-23T19:44:11.284525-05:00",
+        "lvl": "info",
+        "msg": "Esperando SSH (first-boot puede tardar ~3-5 min)…"
+      },
+      {
+        "t": "2026-05-23T19:45:30.6452302-05:00",
+        "lvl": "info",
+        "msg": "SSH disponible en 192.168.56.102"
+      },
+      {
+        "t": "2026-05-23T19:45:30.654465-05:00",
+        "lvl": "info",
+        "msg": "Creando base de datos \"base\" y usuario \"luis\"…"
+      },
+      {
+        "t": "2026-05-23T19:45:31.4462348-05:00",
+        "lvl": "info",
+        "msg": "BD \"base\" y usuario \"luis\" creados con privilegios totales"
+      },
+      {
+        "t": "2026-05-23T19:45:31.4462348-05:00",
+        "lvl": "info",
+        "msg": "Subiendo y ejecutando archivo SQL…"
+      },
+      {
+        "t": "2026-05-23T19:45:33.6243071-05:00",
+        "lvl": "info",
+        "msg": "Archivo SQL ejecutado correctamente"
+      },
+      {
+        "t": "2026-05-23T19:45:33.6243071-05:00",
+        "lvl": "info",
+        "msg": "Registrando DNS: httpaas-db-base-182628d5 → 192.168.56.102"
+      },
+      {
+        "t": "2026-05-23T19:45:33.6625693-05:00",
+        "lvl": "warn",
+        "msg": "DNS: nsupdate falló: exec: \"nsupdate\": executable file not found in %PATH% | stderr: "
+      },
+      {
+        "t": "2026-05-23T19:45:33.7462243-05:00",
+        "lvl": "info",
+        "msg": "Instancia lista — 192.168.56.102:3306 (usuario: luis)"
+      }
+    ],
+    "created_at": "2026-05-23T19:44:05.6274825-05:00",
+    "updated_at": "2026-05-23T19:45:33.7462243-05:00"
+  },
+  "2b455e18-0ff5-44ff-93ee-6b114f292abe": {
+    "id": "2b455e18-0ff5-44ff-93ee-6b114f292abe",
+    "vm_name": "httpaas-db-pase-2b455e18",
+    "vm_uuid": "",
+    "ip": "192.168.56.101",
+    "state": "running",
+    "vbox_state": "running",
+    "db_name": "pase",
+    "db_user": "luis",
+    "db_password": "b68aa33e385eaae4c53e1bf65e6b9711",
+    "db_engine": "postgresql",
+    "db_port": 5432,
+    "sql_file": "basico_tablas_datos.sql",
+    "logs": [
+      {
+        "t": "2026-05-23T20:09:16.625771-05:00",
+        "lvl": "info",
+        "msg": "Solicitud: BD=pase usuario=luis motor=PostgreSQL"
+      },
+      {
+        "t": "2026-05-23T20:09:16.625771-05:00",
+        "lvl": "info",
+        "msg": "IP asignada: 192.168.56.101"
+      },
+      {
+        "t": "2026-05-23T20:09:16.6268017-05:00",
+        "lvl": "info",
+        "msg": "Creando VM httpaas-db-pase-2b455e18 (motor: PostgreSQL)"
+      },
+      {
+        "t": "2026-05-23T20:09:17.0675974-05:00",
+        "lvl": "info",
+        "msg": "VM creada con disco multiconexión: httpaas-postgresql-merged2.vdi"
+      },
+      {
+        "t": "2026-05-23T20:09:17.5588452-05:00",
+        "lvl": "info",
+        "msg": "Guest properties inyectadas (IP=192.168.56.101, GW=192.168.56.1)"
+      },
+      {
+        "t": "2026-05-23T20:09:17.5588452-05:00",
+        "lvl": "info",
+        "msg": "Arrancando VM en modo headless…"
+      },
+      {
+        "t": "2026-05-23T20:09:22.5664076-05:00",
+        "lvl": "info",
+        "msg": "VM en estado running"
+      },
+      {
+        "t": "2026-05-23T20:09:22.5664076-05:00",
+        "lvl": "info",
+        "msg": "Esperando SSH (first-boot puede tardar ~3-5 min)…"
+      },
+      {
+        "t": "2026-05-23T20:10:51.564173-05:00",
+        "lvl": "info",
+        "msg": "SSH disponible en 192.168.56.101"
+      },
+      {
+        "t": "2026-05-23T20:10:51.564173-05:00",
+        "lvl": "info",
+        "msg": "Creando base de datos \"pase\" y usuario \"luis\"…"
+      },
+      {
+        "t": "2026-05-23T20:10:54.223842-05:00",
+        "lvl": "info",
+        "msg": "BD \"pase\" y usuario \"luis\" creados con privilegios totales"
+      },
+      {
+        "t": "2026-05-23T20:10:54.223842-05:00",
+        "lvl": "info",
+        "msg": "Subiendo y ejecutando archivo SQL…"
+      },
+      {
+        "t": "2026-05-23T20:10:54.962988-05:00",
+        "lvl": "info",
+        "msg": "Archivo SQL ejecutado correctamente"
+      },
+      {
+        "t": "2026-05-23T20:10:54.962988-05:00",
+        "lvl": "info",
+        "msg": "Registrando DNS: httpaas-db-pase-2b455e18 → 192.168.56.101"
+      },
+      {
+        "t": "2026-05-23T20:10:54.9798523-05:00",
+        "lvl": "warn",
+        "msg": "DNS: nsupdate falló: exec: \"nsupdate\": executable file not found in %PATH% | stderr: "
+      },
+      {
+        "t": "2026-05-23T20:10:55.0928325-05:00",
+        "lvl": "info",
+        "msg": "Instancia lista — 192.168.56.101:5432 (usuario: luis)"
+      }
+    ],
+    "created_at": "2026-05-23T20:09:16.625771-05:00",
+    "updated_at": "2026-05-23T20:10:55.0928325-05:00"
+  }
+}
